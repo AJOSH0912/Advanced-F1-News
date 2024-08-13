@@ -59,3 +59,42 @@ class F1NewsApp: #Creating a class for the F1 News App
         )
 
 #The following code above is for formating, it creates the gui and places the buttons and labels in the correct place. it also assigns the correct functions to the buttons.
+        self.news_canvas.create_window((0, 0), window=self.scroll_frame, anchor="nw") #mkes a window for the news
+        self.news_canvas.configure(yscrollcommand=self.scroll_y.set)
+        self.news_canvas.pack(side="left", fill="both", expand=True) 
+        self.scroll_y.pack(side="right", fill="y")
+        pagination_frame = ttk.Frame(self.root)
+        pagination_frame.pack(fill="x", padx=10, pady=10)
+        self.prev_button = ttk.Button(pagination_frame, text="Previous", command=self.previous_page)
+        self.prev_button.pack(side="left")
+        self.page_label = ttk.Label(pagination_frame, text=f"Page {self.page}")
+        self.page_label.pack(side="left", padx=10)
+        self.next_button = ttk.Button(pagination_frame, text="Next", command=self.next_page)
+        self.next_button.pack(side="right")
+        saved_button = ttk.Button(pagination_frame, text="View Saved Articles", command=self.view_saved_articles)
+        saved_button.pack(side="left", padx=10)
+#The following code above creates the page thingy buttons and the saved articles button. 
+    def fetch_news(self): #Function to fetch news
+        query = self.search_entry.get()
+        sort_by = self.sort_by_combo.get()
+        from_date = self.from_date_entry.get()
+        to_date = self.to_date_entry.get()
+        query_params = {
+            "q": query,
+            "apiKey": API_KEY,
+            "language": "en",
+            "sortBy": sort_by,
+            "from": from_date,
+            "to": to_date,
+            "pageSize": self.page_size,
+            "page": self.page
+        }
+        response = requests.get(NEWS_API_URL, params=query_params)
+        if response.status_code == 200:
+            articles = response.json().get("articles", [])
+            return articles
+        else:
+            messagebox.showerror("Error", f"Failed to fetch news: {response.status_code}")
+            return []
+        
+#The following code above fetches the news from the API and returns the articles
