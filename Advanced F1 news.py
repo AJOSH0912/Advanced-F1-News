@@ -7,7 +7,36 @@ from datetime import datetime, timedelta
 API_KEY = "2fcff62f7450495c9bb8056bc42203c0"
 NEWS_API_URL = "https://newsapi.org/v2/everything"
 
+
 class F1NewsApp: #Creating a class for the F1 News App
+
+    def fetch_and_display_news(self):
+        self.page_label.config(text=f"Page {self.page}")
+        articles = self.fetch_news()
+        self.display_news(articles)
+
+    def next_page(self):
+        self.page += 1
+        self.fetch_and_display_news()
+
+    def previous_page(self):
+        if self.page > 1:
+            self.page -= 1
+            self.fetch_and_display_news()
+
+    def open_article(self, url):
+        import webbrowser
+        webbrowser.open(url)
+
+    def toggle_theme(self): #Colour theme for the app. Dark mode and light mode. DOES NOT WORK AS INTENTED
+        if self.dark_mode.get():
+            self.root.tk_setPalette(background='#2e2e2e', foreground='white')
+        else:
+            self.root.tk_setPalette(background='SystemButtonFace', foreground='black')
+
+    def save_article(self, article): #To save articles to a list
+        self.saved_articles.append(article)
+        messagebox.showinfo("Saved", "Article saved successfully!")
     def __init__(self, root): #Initialising the class
         self.root = root
         self.root.title("News") #creates Title of the app
@@ -98,3 +127,38 @@ class F1NewsApp: #Creating a class for the F1 News App
             return []
         
 #The following code above fetches the news from the API and returns the articles
+    def display_news(self, articles):
+        for widget in self.scroll_frame.winfo_children():
+            widget.destroy()
+        for article in articles:
+            headline = article.get("title", "No Title")
+            description = article.get("description", "No Description")
+            url = article.get("url", "#")
+            headline_label = tk.Label(self.scroll_frame, text=headline, font=("Helvetica", 14, "bold"), fg="blue", cursor="hand2")
+            headline_label.pack(anchor="w")
+            description_label = tk.Label(self.scroll_frame, text=description, font=("Helvetica", 12))
+            description_label.pack(anchor="w", pady=(0, 10))
+            save_button = ttk.Button(self.scroll_frame, text="Save", command=lambda article=article: self.save_article(article))
+            save_button.pack(anchor="w", pady=(0, 10))
+            headline_label.bind("<Button-1>", lambda e, url=url: self.open_article(url))
+
+
+
+    def view_saved_articles(self):
+        saved_window = tk.Toplevel(self.root)
+        saved_window.title("Saved Articles")
+        saved_frame = ttk.Frame(saved_window)
+        saved_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        for article in self.saved_articles:
+            headline = article.get("title", "No Title")
+            description = article.get("description", "No Description")
+            url = article.get("url", "#")
+            headline_label = tk.Label(saved_frame, text=headline, font=("Helvetica", 14, "bold"), fg="blue", cursor="hand2")
+            headline_label.pack(anchor="w")
+            description_label = tk.Label(saved_frame, text=description, font=("Helvetica", 12))
+            description_label.pack(anchor="w", pady=(0, 10))
+            headline_label.bind("<Button-1>", lambda e, url=url: self.open_article(url))
+
+root = tk.Tk()
+app = F1NewsApp(root)
+root.mainloop()
